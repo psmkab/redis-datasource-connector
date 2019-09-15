@@ -1,0 +1,13 @@
+spring:
+  redis:
+    host: localhost
+    port: 6379
+---
+spring:
+  profiles:
+    active: dev
+
+---
+spring:
+  profiles:
+    active: prod
