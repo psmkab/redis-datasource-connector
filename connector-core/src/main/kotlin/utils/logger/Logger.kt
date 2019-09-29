@@ -1,4 +1,4 @@
-package utils
+package utils.logger
 
 import org.slf4j.LoggerFactory
 
@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory
  */
 
 /**
- * todo ("add sample")
+ * common logger
+ *
  * @sample
  */
 inline fun <reified T: Any> logger() = LoggerFactory.getLogger(T::class.java)

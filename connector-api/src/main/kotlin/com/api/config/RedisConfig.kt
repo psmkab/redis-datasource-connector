@@ -30,8 +30,8 @@ class RedisConfig {
 
     @Bean
     @ConditionalOnBean(type = ["redisConnectionFactory"])
-    fun redisTemplate() : RedisTemplate<String, Any> {
-        return RedisTemplate<String, Any>().apply {
+    fun redisTemplate() : RedisTemplate<String, String> {
+        return RedisTemplate<String, String>().apply {
             setConnectionFactory(redisConnectionFactory())
             keySerializer = StringRedisSerializer()
         }

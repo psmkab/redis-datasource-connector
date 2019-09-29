@@ -1,29 +1,17 @@
 package com.api.service
 
-import com.api.repository.RedisOperationHandler
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
-import utils.logger
+import io.reactivex.Single
 
 /**
  * NAME : sungmin park
  * DATE : 2019-09-14
  */
 
-@Service
-class OperationService @Autowired constructor(
-    private val operationHandler: RedisOperationHandler
-) {
-    companion object {
-        val log = logger<OperationService>()
-    }
 
-    fun read(key: String) : String {
-        return operationHandler.read(key)
-    }
-
-    fun write(body: String) : String {
-//        return operationHandler.write(key = )
-        return "success"
-    }
+/**
+ * @see not for ServiceLoader usage. just specify action.
+ */
+interface OperationService<K, V> {
+    fun read(key: K) : Single<Boolean>
+    fun write(key: K, value: V) : Single<Boolean>
 }
