@@ -10,6 +10,6 @@ import org.slf4j.LoggerFactory
 /**
  * common logger
  *
- * @sample
+ * @sample com.api.service.RedisOperationService
  */
 inline fun <reified T: Any> logger() = LoggerFactory.getLogger(T::class.java)

@@ -1,5 +1,6 @@
 package com.api.config
 
+import com.api.service.RedisMessageSubscriber
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Bean
@@ -8,6 +9,10 @@ import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.listener.ChannelTopic
+import org.springframework.data.redis.listener.RedisMessageListenerContainer
+import org.springframework.data.redis.listener.Topic
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
 /**
@@ -17,6 +22,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 
 @Configuration
 class RedisConfig {
+    companion object {
+        private const val topic = "REDIS_TOPIC"
+    }
+
     @Value("\${spring.redis.host}")
     private lateinit var redisHost: String
 
@@ -36,4 +45,25 @@ class RedisConfig {
             keySerializer = StringRedisSerializer()
         }
     }
+
+    @Bean
+    fun topic() : Topic = ChannelTopic(topic)
+
+    @Bean
+    @ConditionalOnBean(type = ["redisConnectionFactory", "eventListener", "topic"])
+    fun redisMessageListenerContainer(redisConnectionFactory: RedisConnectionFactory,
+                                      eventListener: MessageListenerAdapter,
+                                      topic: Topic) : RedisMessageListenerContainer {
+        return RedisMessageListenerContainer().apply {
+            this.setConnectionFactory(redisConnectionFactory)
+            this.addMessageListener(eventListener, topic)
+        }
+    }
+
+    @Bean
+    @ConditionalOnBean(type = ["redisMessageListenerContainer"])
+    fun eventListener() : MessageListenerAdapter {
+        return MessageListenerAdapter(RedisMessageSubscriber())
+    }
+
 }

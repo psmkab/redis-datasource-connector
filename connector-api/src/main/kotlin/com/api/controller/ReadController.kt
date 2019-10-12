@@ -1,6 +1,5 @@
 package com.api.controller
 
-import com.api.service.OperationService
 import com.api.service.RedisOperationService
 import io.reactivex.Single
 import io.swagger.annotations.ApiOperation
@@ -22,7 +21,7 @@ class ReadController @Autowired constructor(
 ) {
     @ApiOperation(value = "get com.api.data from redis if exist. if not get com.api.data from other com.api.data sources that responded fastest. ")
     @GetMapping("/read/{key}")
-    fun read(@PathVariable("key") key: String) : Single<Boolean> {
+    fun read(@PathVariable("key") key: String) : Single<String?> {
         return redisOperationService.read(key)
     }
 }

@@ -14,28 +14,44 @@ import utils.validation.ifNotNull
 
 @Service
 class RedisOperationService @Autowired constructor(
-    private val redisOperationHandler: RedisOperationHandler
-) : OperationService<String, String> {
+    private val redisOperationHandler: RedisOperationHandler,
+    private val redisMessageSubscriber: RedisMessageSubscriber
+) : ReadService<String, Single<String?>>, WriteService<String, String, Single<Boolean>> {
 
     companion object {
         val log = logger<RedisOperationService>()!!
     }
 
-    // todo("exception handling")
-    override fun read(key: String): Single<Boolean> {
+    /**
+     * if read from redis is succeed, return value.
+     * if read from redis is failed, read from other persistent layers which responded fastest.
+     */
+    override fun read(key: String): Single<String?> {
         log.info("Read data from redis by key:$key")
 
         key.ifNotNull {
-            redisOperationHandler.read(key = key)
+            return@ifNotNull redisOperationHandler.read(key = key)
+                .map {
+                    log.info("Read data from other persistent layer by key: $key")
+                    if(it.isNullOrEmpty()) false
+                    else it
+                }
         }
     }
 
-    // todo("exception handling")
+    /**
+     * if write to redis is success, send event for writing other persistent layers by asynchronous.
+     * if write to redis is failed, do not send event for preventing data in-consistency.
+     */
     override fun write(key: String, value: String): Single<Boolean> {
         log.info("Write data to redis by key:$key value:$value")
 
-        key.ifNotNull {
-            redisOperationHandler.write(key = key, value = value)
+        return key.ifNotNull {
+            return@ifNotNull redisOperationHandler.write(key = key, value = value)
+                .map {
+                    if(it) true
+                    else false
+                }
         }
     }
 }

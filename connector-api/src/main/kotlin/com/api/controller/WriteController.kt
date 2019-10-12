@@ -1,7 +1,6 @@
 package com.api.controller
 
 import com.api.data.Request
-import com.api.service.OperationService
 import com.api.service.RedisOperationService
 import io.reactivex.Single
 import org.springframework.beans.factory.annotation.Autowired
