@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 class WriteController @Autowired constructor(
     private val redisOperationService: RedisOperationService
 ) {
-    @RequestMapping("/write", method = [ PUT, POST ])
+    @RequestMapping("write", method = [ PUT, POST ])
     fun write(@RequestBody body: Request) : Single<Boolean> {
         return redisOperationService.write(
             key = body.key,

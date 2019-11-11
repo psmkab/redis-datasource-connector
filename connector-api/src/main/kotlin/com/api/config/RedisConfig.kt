@@ -32,7 +32,6 @@ class RedisConfig {
     @Value("\${spring.redis.port}")
     private var redisPort: Int? = 6379
 
-    @Bean
     fun redisConnectionFactory() : RedisConnectionFactory {
         return JedisConnectionFactory(RedisStandaloneConfiguration(redisHost, redisPort!!))
     }
@@ -47,7 +46,7 @@ class RedisConfig {
     }
 
     @Bean
-    fun topic() : Topic = ChannelTopic(topic)
+    fun topic() = ChannelTopic(topic)
 
     @Bean
     @ConditionalOnBean(type = ["redisConnectionFactory", "eventListener", "topic"])

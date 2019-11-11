@@ -20,12 +20,7 @@ class RedisOperationHandler @Autowired constructor(
         val log = logger<RedisOperationHandler>()
     }
 
-    // todo -> lateinit 깔끔하게 바꿔야 함 혹은 lazy loading으로.
-    private lateinit var opsForValue: ValueOperations<String, String>
-
-    init {
-        val opsForValue = redisTemplate.opsForValue()
-    }
+    private var opsForValue: ValueOperations<String, String> = redisTemplate.opsForValue()
 
     /**
      * if no data in redis by key, it's not error, just assume failed case.

@@ -1,5 +1,6 @@
 package com.api.service
 
+import com.api.repository.BackupStorageService
 import com.api.repository.RedisOperationHandler
 import io.reactivex.Single
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +16,8 @@ import utils.validation.ifNotNull
 @Service
 class RedisOperationService @Autowired constructor(
     private val redisOperationHandler: RedisOperationHandler,
-    private val redisMessageSubscriber: RedisMessageSubscriber
+    private val backupStorageService: List<BackupStorageService<*>>,
+    private val redisMessagePublisher: RedisMessagePublisher
 ) : ReadService<String, Single<String?>>, WriteService<String, String, Single<Boolean>> {
 
     companion object {
@@ -29,14 +31,28 @@ class RedisOperationService @Autowired constructor(
     override fun read(key: String): Single<String?> {
         log.info("Read data from redis by key:$key")
 
-        key.ifNotNull {
+        return key ifNotNull {
             return@ifNotNull redisOperationHandler.read(key = key)
                 .map {
-                    log.info("Read data from other persistent layer by key: $key")
-                    if(it.isNullOrEmpty()) false
-                    else it
+                    if(it != null) it else getValueFromBackupStorage(key = key)
+                }
+                .onErrorReturn {
+                    log.error("Cannot find data in redis w/ persistent layer by key: $key")
+                    null
                 }
         }
+    }
+
+    private fun getValueFromBackupStorage(key: String): String {
+        return backupStorageService
+            .parallelStream()
+            .map { it.get(key) }
+            .filter { it != null }
+            .map { it.toString() }
+            .findAny()
+            .orElseThrow {
+                RuntimeException("Cannot find any value by key: $key")
+            }
     }
 
     /**
@@ -48,10 +64,26 @@ class RedisOperationService @Autowired constructor(
 
         return key.ifNotNull {
             return@ifNotNull redisOperationHandler.write(key = key, value = value)
-                .map {
-                    if(it) true
-                    else false
+                .flatMap {
+                    if(it) relayEventToPersistentLayer(key = key, value = value) else Single.just(false)
+                }
+                .onErrorReturn {
+                    log.error("Cannot update persistent layer by key: $key, value: $value")
+                    false
                 }
         }
+    }
+
+    // TODO : MAKE THIS FUNCTION TO ASYNC
+    private fun relayEventToPersistentLayer(key: String, value: String): Single<Boolean> {
+        return Single.fromCallable {
+            redisMessagePublisher.sendMessage(key, value)
+            true
+        }
+        .onErrorReturn {
+            log.error("Cannot relay event to persistent layer by key: $key, value: $value")
+            false
+        }
+
     }
 }

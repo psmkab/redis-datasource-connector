@@ -1,9 +1,11 @@
 package com.api.service
 
+import com.api.repository.BackupStorageService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.connection.Message
 import org.springframework.data.redis.connection.MessageListener
 import org.springframework.stereotype.Component
+import utils.logger.logger
 
 /**
  * NAME : sungmin park
@@ -12,9 +14,17 @@ import org.springframework.stereotype.Component
 
 @Component
 class RedisMessageSubscriber @Autowired constructor(
-    // todo : add all persistent layers
+    private val backupStorageService: List<BackupStorageService<*>>
 ) : MessageListener {
-    override fun onMessage(message: Message, pattern: ByteArray?) {
+    companion object {
+        val log = logger<RedisMessageSubscriber>()
+    }
 
+    override fun onMessage(message: Message, pattern: ByteArray?) {
+        log.info("Get message, ${message.body.toString()}")
+
+        // TODO : HOW TO FIX DATA..
+//        backupStorageService
+//            .map { it.write(message.body.toString()) }
     }
 }
