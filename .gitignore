@@ -21,7 +21,7 @@
 /code
 MANIFEST.MF
 _site/
-activemq-data
+activemq-com.api.data
 bin
 build
 build.log

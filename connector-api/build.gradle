@@ -1,0 +1,9 @@
+dependencies {
+    compile project(':connector-core')
+
+    implementation(
+            'io.springfox:springfox-swagger2:2.9.2',
+            'io.springfox:springfox-swagger-ui:2.9.2',
+            'org.springframework.boot:spring-boot-starter-data-redis:1.4.0.RELEASE'
+    )
+}
